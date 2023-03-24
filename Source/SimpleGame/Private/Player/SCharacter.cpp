@@ -2,12 +2,14 @@
 
 
 #include "Player/SCharacter.h"
+#include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "UI/SMainUI.h"
 #include "PaperFlipbookComponent.h"
 
 ASCharacter::ASCharacter()
@@ -48,6 +50,8 @@ void ASCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	ConfigureMappingContext();
+
+	CreateMainUI();
 }
 
 void ASCharacter::ConfigureMappingContext() const
@@ -78,6 +82,12 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 			PlayerEnhancedInputComponent->BindAction(MovementAction, ETriggerEvent::Triggered, this, &ASCharacter::MovePlayer);
 			PlayerEnhancedInputComponent->BindAction(MovementAction, ETriggerEvent::Completed, this, &ASCharacter::SetIdleAnimation);
 		}
+
+		if(SprintAction)
+		{
+			PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ASCharacter::StartSprinting);
+			PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ASCharacter::StopSprinting);
+		}
 	}
 }
 
@@ -92,6 +102,56 @@ void ASCharacter::MovePlayer(const FInputActionValue& ActionValue)
 
 	CalculateDirection(InputValue);
 	SetMoveAnimation();
+}
+
+void ASCharacter::StartSprinting(const FInputActionValue& ActionValue)
+{
+	IsSprintKeyPressed = true;
+
+	UpdateMovementSpeed(SprintSpeed);
+
+	//Decrease energy during the player sprinting 
+	GetWorld()->GetTimerManager().SetTimer(CheckMoveTimer, this, &ASCharacter::CheckForPlayerMove, GetWorld()->GetDeltaSeconds(), true);
+}
+
+void ASCharacter::CheckForPlayerMove()
+{
+	if(!MainUIClass)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(CheckMoveTimer);
+		return;
+	}
+
+	//Wait for the player move
+	const bool IsMoving = GetVelocity().Length() >= 0.01f;
+	if(IsMoving && IsSprintKeyPressed)
+	{
+		MainUIClass->DecreasingEnergy();
+	}
+	else if(!IsMoving)
+	{
+		MainUIClass->StartIncreasingEnergy();
+	}
+	else if(!IsSprintKeyPressed)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(CheckMoveTimer);
+	}
+}
+
+void ASCharacter::StopSprinting(const FInputActionValue& ActionValue)
+{
+	IsSprintKeyPressed = false;
+
+	MainUIClass->StartIncreasingEnergy();
+	
+	UpdateMovementSpeed(WalkSpeed);
+}
+
+void ASCharacter::UpdateMovementSpeed(const float SpeedValue) const
+{
+	//Update the player's flipbook and speed
+	GetCharacterMovement()->MaxWalkSpeed = SpeedValue;
+	GetSprite()->SetPlayRate(SpeedValue * 0.02f);
 }
 
 void ASCharacter::CalculateDirection(const FVector2d Value)
@@ -204,5 +264,15 @@ void ASCharacter::SetIdleAnimation()
 			
 		GetSprite()->SetFlipbook(Flipbooks.IdleLeft);
 		break;
+	}
+}
+
+void ASCharacter::CreateMainUI()
+{
+	MainUIClass = Cast<USMainUI>(CreateWidget(GetWorld(), TSubMainUI));
+
+	if(MainUIClass)
+	{
+		MainUIClass->AddToViewport();
 	}
 }

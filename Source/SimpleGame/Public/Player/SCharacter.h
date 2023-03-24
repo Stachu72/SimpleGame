@@ -9,6 +9,7 @@
 class UCameraComponent;
 class UInputAction;
 class UInputMappingContext;
+class USMainUI;
 class UPaperFlipbook;
 class USpringArmComponent;
 
@@ -92,6 +93,9 @@ private:
 	UInputAction* MovementAction;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UInputAction* SprintAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputMappingContext* MappingContext;
 	
 	
@@ -100,16 +104,53 @@ private:
 	/** Movement                    **/
 	/*********************************/
 
+public:
+	void UpdateMovementSpeed(const float SpeedValue) const;
+	
+	void ReleaseSprintButton() { IsSprintKeyPressed = false; }
+
+	bool IsPlayerSprinting() const { return IsSprintKeyPressed && GetVelocity().Length() >= 0.01f; }
+
+	float GetWalkSpeed() const { return WalkSpeed; }
+	
+private:
 	void MovePlayer(const FInputActionValue& ActionValue);
 
+	void StartSprinting(const FInputActionValue& ActionValue);
+	void CheckForPlayerMove();
+
+	void StopSprinting(const FInputActionValue& ActionValue);
+	
 	void CalculateDirection(const FVector2d Value);
 
 	void SetMoveAnimation() const;
 	void SetIdleAnimation();
+
+	bool IsSprintKeyPressed = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float SprintSpeed = 70.f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float WalkSpeed = 40.f;
 	
 	EAnimationDirection CharacterDirection;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Movement|Animations")
 	FFlipbooksAnimations Flipbooks;
+
+	FTimerHandle CheckMoveTimer;
+
 	
+	
+	/*********************************/
+	/** User Interface              **/
+	/*********************************/
+
+	void CreateMainUI();
+	
+	UPROPERTY(VisibleAnywhere, Category = "User Interface")
+	USMainUI* MainUIClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "User Interface")
+	TSubclassOf<UUserWidget> TSubMainUI;
 };
