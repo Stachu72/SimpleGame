@@ -7,9 +7,11 @@
 #include "SMainUI.generated.h"
 
 class ASCharacter;
+class UHorizontalBox;
 class UImage;
 class UOverlay;
 class UProgressBar;
+class USItemSlot;
 
 UCLASS()
 class SIMPLEGAME_API USMainUI : public UUserWidget
@@ -55,4 +57,54 @@ private:
 	UImage* EnergyIcon;
 	UPROPERTY(meta = (BindWidget))
 	UProgressBar* EnergyBar;
+
+
+	
+	/*********************************/
+	/** Toolbar                     **/
+	/*********************************/
+
+public:
+	void ScrollBetweenToolbarSlots(const float ScrollValue);
+	
+	void CheckPressedKey();
+	
+private:
+	void InitializeToolbarSlotsArray();
+	
+	bool IsKeyPressed(const FKey Key) const { return GetWorld()->GetFirstPlayerController()->WasInputKeyJustPressed(Key); }
+	
+	void UpdateActiveToolbarSlot(USItemSlot* NewActiveSlot);
+	
+	UPROPERTY(VisibleAnywhere, Category = "Toolbar")
+	USItemSlot* ActiveSlot;
+
+	TArray<USItemSlot*> ToolbarSlots;
+	
+	UPROPERTY(meta = (BindWidget))
+	UHorizontalBox* ToolbarSlotsBox;
+	
+	UPROPERTY(meta = (BindWidget))
+	USItemSlot* Slot_0;
+	UPROPERTY(meta = (BindWidget))
+	USItemSlot* Slot_1;
+	UPROPERTY(meta = (BindWidget))
+	USItemSlot* Slot_2;
+	UPROPERTY(meta = (BindWidget))
+	USItemSlot* Slot_3;
+	UPROPERTY(meta = (BindWidget))
+	USItemSlot* Slot_4;
+	UPROPERTY(meta = (BindWidget))
+	USItemSlot* Slot_5;
+	UPROPERTY(meta = (BindWidget))
+	USItemSlot* Slot_6;
+	UPROPERTY(meta = (BindWidget))
+	USItemSlot* Slot_7;
+	UPROPERTY(meta = (BindWidget))
+	USItemSlot* Slot_8;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Toolbar")
+	UTexture2D* InActiveSlotIcon;
+	UPROPERTY(EditDefaultsOnly, Category = "Toolbar")
+	UTexture2D* ActiveSlotIcon;
 };

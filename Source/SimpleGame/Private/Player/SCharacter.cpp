@@ -88,6 +88,23 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 			PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ASCharacter::StartSprinting);
 			PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ASCharacter::StopSprinting);
 		}
+
+		//Scrolling between toolbar slots
+		if(ScrollingToolbarAction)
+		{
+			PlayerEnhancedInputComponent->BindAction(ScrollingToolbarAction, ETriggerEvent::Started, this, &ASCharacter::StartScrollingToolbar);
+		}
+		
+		//Press 1-9 key, to active a toolbar slot
+		PlayerInputComponent->BindKey(EKeys::One, IE_Pressed, this, &ASCharacter::OnPressedToolbarSlotKey);
+		PlayerInputComponent->BindKey(EKeys::Two, IE_Pressed, this, &ASCharacter::OnPressedToolbarSlotKey);
+		PlayerInputComponent->BindKey(EKeys::Three, IE_Pressed, this, &ASCharacter::OnPressedToolbarSlotKey);
+		PlayerInputComponent->BindKey(EKeys::Four, IE_Pressed, this, &ASCharacter::OnPressedToolbarSlotKey);
+		PlayerInputComponent->BindKey(EKeys::Five, IE_Pressed, this, &ASCharacter::OnPressedToolbarSlotKey);
+		PlayerInputComponent->BindKey(EKeys::Six, IE_Pressed, this, &ASCharacter::OnPressedToolbarSlotKey);
+		PlayerInputComponent->BindKey(EKeys::Seven, IE_Pressed, this, &ASCharacter::OnPressedToolbarSlotKey);
+		PlayerInputComponent->BindKey(EKeys::Eight, IE_Pressed, this, &ASCharacter::OnPressedToolbarSlotKey);
+		PlayerInputComponent->BindKey(EKeys::Nine, IE_Pressed, this, &ASCharacter::OnPressedToolbarSlotKey);
 	}
 }
 
@@ -274,5 +291,22 @@ void ASCharacter::CreateMainUI()
 	if(MainUIClass)
 	{
 		MainUIClass->AddToViewport();
+	}
+}
+
+void ASCharacter::StartScrollingToolbar(const FInputActionValue& ActionValue)
+{
+	if(MainUIClass)
+	{
+		const float ScrollValue = ActionValue.Get<float>();
+		MainUIClass->ScrollBetweenToolbarSlots(ScrollValue);
+	}
+}
+
+void ASCharacter::OnPressedToolbarSlotKey()
+{
+	if(MainUIClass)
+	{
+		MainUIClass->CheckPressedKey();
 	}
 }

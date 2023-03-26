@@ -96,6 +96,9 @@ private:
 	UInputAction* SprintAction;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UInputAction* ScrollingToolbarAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputMappingContext* MappingContext;
 	
 	
@@ -147,6 +150,10 @@ private:
 	/*********************************/
 
 	void CreateMainUI();
+
+	void StartScrollingToolbar(const FInputActionValue& ActionValue);
+	
+	void OnPressedToolbarSlotKey();
 	
 	UPROPERTY(VisibleAnywhere, Category = "User Interface")
 	USMainUI* MainUIClass;

@@ -1,10 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+// ReSharper disable CppTooWideScope
 
 #include "UI/SMainUI.h"
+#include "Components/Border.h"
 #include "Components/ProgressBar.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/SCharacter.h"
+#include "UI/SItemSlot.h"
 
 void USMainUI::NativeConstruct()
 {
@@ -12,6 +15,9 @@ void USMainUI::NativeConstruct()
 
 	//Find and assign the player character class
 	PlayerClass = Cast<ASCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
+
+	InitializeToolbarSlotsArray();
+	UpdateActiveToolbarSlot(ToolbarSlots[0]);
 }
 
 void USMainUI::DecreasingEnergy()
@@ -82,4 +88,149 @@ void USMainUI::IncreasingEnergy()
 
 	const float IncreaseAmount = GetWorld()->GetDeltaSeconds() * IncreaseEnergyMultiplier;
 	EnergyBar->SetPercent(EnergyAmount + IncreaseAmount);
+}
+
+void USMainUI::InitializeToolbarSlotsArray()
+{
+	//Add all toolbar slots to one array
+	ToolbarSlots.Add(Slot_0);
+	ToolbarSlots.Add(Slot_1);
+	ToolbarSlots.Add(Slot_2);
+	ToolbarSlots.Add(Slot_3);
+	ToolbarSlots.Add(Slot_4);
+	ToolbarSlots.Add(Slot_5);
+	ToolbarSlots.Add(Slot_6);
+	ToolbarSlots.Add(Slot_7);
+	ToolbarSlots.Add(Slot_8);
+}
+
+void USMainUI::ScrollBetweenToolbarSlots(const float ScrollValue)
+{
+	/* Scroll down -> Swipe active slot to left */
+	const bool bScrollingDown = ScrollValue < 0;
+	if(bScrollingDown)
+	{
+		//Check which slot is active
+		for(int i = 0; i < ToolbarSlots.Num(); i++)
+		{
+			const bool IsSlotActive = ToolbarSlots[i] == ActiveSlot;
+			if(IsSlotActive)
+			{
+				const bool IsFirstSlotActive = i == 0;
+				if(IsFirstSlotActive)
+				{
+					USItemSlot* LastItemSlot = ToolbarSlots[ToolbarSlots.Num() - 1];
+					UpdateActiveToolbarSlot(LastItemSlot);
+					
+					return;
+				}
+
+				USItemSlot* PreviousSlot = ToolbarSlots[i-1];
+				UpdateActiveToolbarSlot(PreviousSlot);
+				
+				return;
+			}
+		}
+	}
+	
+	/* Scroll up -> Swipe active slot to right */
+	const bool bScrollingUp = ScrollValue > 0;
+	if(bScrollingUp)
+	{
+		//Check which slot is active
+		for(int i = 0; i < ToolbarSlots.Num(); i++)
+		{
+			const bool IsSlotActive = ToolbarSlots[i] == ActiveSlot;
+			if(IsSlotActive)
+			{
+				const bool IsLastSlotActive = i == ToolbarSlots.Num() - 1;
+				if(IsLastSlotActive)
+				{
+					USItemSlot* FirstSlot = ToolbarSlots[0];
+					UpdateActiveToolbarSlot(FirstSlot);
+					
+					return;
+				}
+
+				USItemSlot* NextSlot = ToolbarSlots[i+1];
+				UpdateActiveToolbarSlot(NextSlot);
+				
+				return;
+			}
+		}
+	}
+}
+
+void USMainUI::CheckPressedKey()
+{
+	if(IsKeyPressed(EKeys::One))
+	{
+		UpdateActiveToolbarSlot(Slot_0);
+	}
+	else if(IsKeyPressed(EKeys::Two))
+	{
+		UpdateActiveToolbarSlot(Slot_1);
+	}
+	else if(IsKeyPressed(EKeys::Three))
+	{
+		UpdateActiveToolbarSlot(Slot_2);
+	}
+	else if(IsKeyPressed(EKeys::Four))
+	{
+		UpdateActiveToolbarSlot(Slot_3);
+	}
+	else if(IsKeyPressed(EKeys::Five))
+	{
+		UpdateActiveToolbarSlot(Slot_4);
+	}
+	else if(IsKeyPressed(EKeys::Six))
+	{
+		UpdateActiveToolbarSlot(Slot_5);
+	}
+	else if(IsKeyPressed(EKeys::Seven))
+	{
+		UpdateActiveToolbarSlot(Slot_6);
+	}
+	else if(IsKeyPressed(EKeys::Eight))
+	{
+		UpdateActiveToolbarSlot(Slot_7);
+	}
+	else if(IsKeyPressed(EKeys::Nine))
+	{
+		UpdateActiveToolbarSlot(Slot_8);
+	}
+}
+
+void USMainUI::UpdateActiveToolbarSlot(USItemSlot* NewActiveSlot)
+{
+	const bool IsSlotAlreadyActive = NewActiveSlot == ActiveSlot;
+	if(IsSlotAlreadyActive)
+	{
+		return;
+	}
+	
+	const bool IsActiveSlotSet = ActiveSlot != nullptr;
+	if(IsActiveSlotSet)
+	{
+		/* Inactive the old active slot */
+		UBorder* BackgroundHandle = ActiveSlot->GetBackground();
+		BackgroundHandle->SetBrushFromTexture(InActiveSlotIcon);
+		BackgroundHandle->SetBrushColor(FColor::FromHex(TEXT("FFFFFFFF")));
+		ActiveSlot->SetBackground(BackgroundHandle);
+		BackgroundHandle->SetPadding(FMargin(15.f, 15.f, 15.f, 25.f));
+	}
+	
+	if(!NewActiveSlot)
+	{
+		return;
+	}
+
+	ActiveSlot = NewActiveSlot;
+	
+	/* Active the new active slot */
+	UBorder* BackgroundHandle = NewActiveSlot->GetBackground();
+	BackgroundHandle->SetBrushFromTexture(ActiveSlotIcon);
+	BackgroundHandle->SetBrushColor(FColor::FromHex(TEXT("E1D7D1FF")));
+	NewActiveSlot->SetBackground(BackgroundHandle);
+	BackgroundHandle->SetPadding(FMargin(15.f, 20.f, 15.f, 20.f));
 }
