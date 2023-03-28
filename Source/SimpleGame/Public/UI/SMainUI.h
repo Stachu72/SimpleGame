@@ -68,6 +68,12 @@ public:
 	void ScrollBetweenToolbarSlots(const float ScrollValue);
 	
 	void CheckPressedKey();
+
+	void UpdateSlotIcon(const int32 SlotIndex, UTexture2D* NewIcon);
+
+	void RemoveActiveSlotIcon() const;
+
+	int32 GetActiveSlotIndex() const;
 	
 private:
 	void InitializeToolbarSlotsArray();
@@ -103,8 +109,11 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	USItemSlot* Slot_8;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Toolbar")
+	UPROPERTY(EditDefaultsOnly, Category = "Icons")
 	UTexture2D* InActiveSlotIcon;
-	UPROPERTY(EditDefaultsOnly, Category = "Toolbar")
+	UPROPERTY(EditDefaultsOnly, Category = "Icons")
 	UTexture2D* ActiveSlotIcon;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Icons")
+	UTexture2D* EmptySlotIcon;
 };

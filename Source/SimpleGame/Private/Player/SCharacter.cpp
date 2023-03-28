@@ -11,6 +11,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "UI/SMainUI.h"
 #include "PaperFlipbookComponent.h"
+#include "Components/SInventoryComponent.h"
+#include "Items/SBaseItem.h"
 
 ASCharacter::ASCharacter()
 {
@@ -43,6 +45,9 @@ void ASCharacter::ConfigurePlayerComponents()
 	//Set default flipbook
 	CharacterDirection = Down;
 	SetMoveAnimation();
+
+	//Set player inventory
+	InventoryComp = CreateDefaultSubobject<USInventoryComponent>(TEXT("Inventory"));
 }
 
 void ASCharacter::BeginPlay()
@@ -93,6 +98,18 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		if(ScrollingToolbarAction)
 		{
 			PlayerEnhancedInputComponent->BindAction(ScrollingToolbarAction, ETriggerEvent::Started, this, &ASCharacter::StartScrollingToolbar);
+		}
+
+		//Press a specified button to pick up an item
+		if(PickupItemAction)
+		{
+			PlayerEnhancedInputComponent->BindAction(PickupItemAction, ETriggerEvent::Started, this, &ASCharacter::TryToPickupItem);
+		}
+
+		//Press a specified button to drop an item
+		if(DropItemAction)
+		{
+			PlayerEnhancedInputComponent->BindAction(DropItemAction, ETriggerEvent::Started, this, &ASCharacter::TryToDropItem);
 		}
 		
 		//Press 1-9 key, to active a toolbar slot
@@ -308,5 +325,54 @@ void ASCharacter::OnPressedToolbarSlotKey()
 	if(MainUIClass)
 	{
 		MainUIClass->CheckPressedKey();
+	}
+}
+
+void ASCharacter::TryToPickupItem()
+{
+	//Get information about the overlapping actors
+	TArray<AActor*> OverlappingActors;
+	GetOverlappingActors(OverlappingActors, TSubclassOf<ASBaseItem>());
+
+	for (AActor* OverlappedActor : OverlappingActors)
+	{
+		//Check for overlapped with a item
+		ASBaseItem* OverlappedItem = Cast<ASBaseItem>(OverlappedActor);
+		if(!OverlappedItem)
+		{
+			continue;
+		}
+
+		/* Pickup the item and update a slot icon */
+		int32 UsedSlot = 0;
+		if(InventoryComp->PickupItem(OverlappedItem, UsedSlot))
+		{
+			if(!MainUIClass)
+			{
+				return;
+			}
+
+			UTexture2D* ItemIcon = OverlappedItem->GetBaseItemStats().Icon;
+			MainUIClass->UpdateSlotIcon(UsedSlot, ItemIcon);
+
+			OverlappedActor->Destroy();
+		
+			break;
+		}
+	}
+}
+
+void ASCharacter::TryToDropItem()
+{
+	if(!MainUIClass)
+	{
+		return;
+	}
+
+	/* Drop the item and update a slot icon */
+	const int32 SlotIndex = MainUIClass->GetActiveSlotIndex();
+	if(InventoryComp->DropItem(SlotIndex))
+	{
+		MainUIClass->RemoveActiveSlotIcon();
 	}
 }

@@ -4,6 +4,7 @@
 
 #include "UI/SMainUI.h"
 #include "Components/Border.h"
+#include "Components/Image.h"
 #include "Components/ProgressBar.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/SCharacter.h"
@@ -233,4 +234,26 @@ void USMainUI::UpdateActiveToolbarSlot(USItemSlot* NewActiveSlot)
 	BackgroundHandle->SetBrushColor(FColor::FromHex(TEXT("E1D7D1FF")));
 	NewActiveSlot->SetBackground(BackgroundHandle);
 	BackgroundHandle->SetPadding(FMargin(15.f, 20.f, 15.f, 20.f));
+}
+
+void USMainUI::UpdateSlotIcon(const int32 SlotIndex, UTexture2D* NewIcon)
+{
+	UImage* ImageHandle = ToolbarSlots[SlotIndex]->GetItemIcon();
+	ImageHandle->SetBrushFromTexture(NewIcon);
+}
+
+void USMainUI::RemoveActiveSlotIcon() const
+{
+	UImage* ImageHandle = ActiveSlot->GetItemIcon();
+	ImageHandle->SetBrushFromTexture(EmptySlotIcon);
+}
+
+int32 USMainUI::GetActiveSlotIndex() const
+{
+	if(!ActiveSlot)
+	{
+		return 0;
+	}
+
+	return ToolbarSlots.Find(ActiveSlot);
 }

@@ -9,9 +9,10 @@
 class UCameraComponent;
 class UInputAction;
 class UInputMappingContext;
-class USMainUI;
 class UPaperFlipbook;
 class USpringArmComponent;
+class USInventoryComponent;
+class USMainUI;
 
 struct FInputActionValue;
 
@@ -79,6 +80,10 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
 	UCameraComponent* CameraComp;
 	
+	/* Primary inventory */
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
+	USInventoryComponent* InventoryComp;
+
 	
 
 	/**********************************/
@@ -97,6 +102,12 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputAction* ScrollingToolbarAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UInputAction* PickupItemAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UInputAction* DropItemAction;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputMappingContext* MappingContext;
@@ -160,4 +171,14 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "User Interface")
 	TSubclassOf<UUserWidget> TSubMainUI;
+
+
+
+	/*********************************/
+	/** Items                       **/
+	/*********************************/
+
+	void TryToPickupItem();
+
+	void TryToDropItem();
 };
